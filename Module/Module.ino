@@ -1,5 +1,4 @@
 #include <HTTPClient.h>
-
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <WiFi.h>
@@ -8,12 +7,16 @@
 // Module id
 const int mod_id = 0;
 
-// GPIO where the DS18B20 is connected to
+// GPIO where the DS18B20 is connected to (23)
 const int oneWireBus = 23;
 // GPIO where the LDR is connected to
-const int ldr = 22;
+const int ldr_sensor = 22;
 // GPIO where the rele is connected to
 const int rele =  21;
+// GPIO where the buzzer is connected to
+const int buzzer =  19;
+// GPIO where the rele is connected to
+int LED_BUILTIN = 2;
 
 // Setup a oneWire instance to communicate with any OneWire devices
 OneWire oneWire(oneWireBus);
@@ -35,7 +38,8 @@ unsigned long lastTime = 0;
 // Timer set to 10 minutes (600000)
 //unsigned long timerDelay = 600000;
 // Set timer to 30 seconds (30000)
-unsigned long timerDelay = 3000;
+unsigned long timerDelay = 5000;
+
 String translateEncryptionType(wifi_auth_mode_t encryptionType) {
   switch (encryptionType) {
     case (WIFI_AUTH_OPEN):
@@ -100,7 +104,6 @@ void connectToNetwork() {
   }
 
   Serial.println("Connected to network");
-
 }
 
 void insert_temp(float temp) {
@@ -184,20 +187,49 @@ void setup() {
   // Start the DS18B20 sensor
   sensors.begin();
 
+  // define o pino relativo ao buzzer de saida
+  pinMode(buzzer, OUTPUT);
+  // define o pino relativo ao rele de saida
+  pinMode(rele, OUTPUT);
+  // define o pino relativo ao sensor como entrada digital
+  pinMode(ldr_sensor, INPUT);
+  // define o pino relativo ao rele de saida
+  pinMode(LED_BUILTIN, OUTPUT);
+
   // wifi settings
   scanNetworks();
   connectToNetwork();
   Serial.println(WiFi.macAddress());
   Serial.println(WiFi.localIP());
+
+  digitalWrite(LED_BUILTIN, LOW);   // turn the LED on
 }
 
 void loop() {
+  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on
+//  //
+//  if ((millis() - lastTime) > timerDelay) {
+//    // read ldr
+//    int ldr_status = digitalRead(ldr_sensor);
+//    Serial.println(ldr_status);
+//
+//    if (ldr_status == HIGH) {
+//      Serial.println("Nao há luz. Porta fechada");
+//      digitalWrite(rele, LOW);
+//    }
+//    else {
+//      Serial.println("Porta aberta");
+//      digitalWrite(rele, HIGH);
+//    }
+//  }
+  
   //Send an HTTP POST request every 10 minutes
   if ((millis() - lastTime) > timerDelay) {
 
+
     // Get temperature from sensor
     float temp = getTemp();
-    Serial.println(temp);
+    //Serial.println(temp);
 
     //Check WiFi connection status
     if (WiFi.status() == WL_CONNECTED) {
